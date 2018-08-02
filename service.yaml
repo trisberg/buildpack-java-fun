@@ -1,0 +1,36 @@
+apiVersion: serving.knative.dev/v1alpha1
+kind: Service
+metadata:
+  name: buildpack-java-fun
+  namespace: default
+spec:
+  runLatest:
+    configuration:
+      build:
+        serviceAccountName: riff-build
+        source:
+          git:
+            url: https://github.com/trisberg/java-fun-upper
+            revision: master
+        template:
+          name: buildpack
+          arguments:
+          - name: IMAGE
+            value: &image springdeveloper/buildpack-java-fun
+          - name: BUILDPACK_ORDER
+            value: https://github.com/trisberg/riff-java-buildpack
+          - name: SKIP_DETECT
+            value: "true"
+        # - name: CACHE
+        #   value: buildpack-java-fun-cache
+        # volumes:
+        # - name: buildpack-java-fun-cache
+        #   persistentVolumeClaim:
+        #     claimName: buildpack-java-fun-cache
+      revisionTemplate:
+        spec:
+          container:
+            image: *image
+            env:
+            - name: FUNCTION_HANDLER
+              value: functions.Upper
